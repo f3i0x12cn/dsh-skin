@@ -1,0 +1,46 @@
+{
+  "name": "dsh-skin-photo",
+  "version": "1.0.0",
+  "description": "Photo-background skin for the DeepSeek Harness Web client: a local image behind glass surfaces, tuned from Settings",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/f3i0x12cn/dsh-skin-photo.git"
+  },
+  "homepage": "https://github.com/f3i0x12cn/dsh-skin-photo#readme",
+  "bugs": "https://github.com/f3i0x12cn/dsh-skin-photo/issues",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "default": "./lib/client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "assets",
+    "cordis.patch.yml",
+    "install.sh",
+    "LICENSE",
+    "README.md"
+  ],
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "skin",
+    "theme"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true
+    }
+  }
+}

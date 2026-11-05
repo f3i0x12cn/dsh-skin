@@ -1,0 +1,9 @@
+# This package is a dsh profile layer: installing it adds the row below.
+#
+# `insert` without an `id` appends to the profile root, which is how a bundle
+# contributes its own entries — see @deepseek-ai/dsh-base's patch for the same
+# shape. Patching a row by id instead would silently skip, because nothing with
+# this id exists until the row itself is inserted.
+- insert:
+    - id: skin-photo
+      name: dsh-skin-photo

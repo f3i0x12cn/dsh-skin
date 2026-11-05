@@ -1,0 +1,5 @@
+.DS_Store
+node_modules/
+*.log
+
+# 本地导出的预览产物（docs/ 里的预览图是提交的，不在此列）
