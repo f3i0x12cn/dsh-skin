@@ -1,6 +1,6 @@
 {
   "name": "dsh-skin",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Appearance skin for the DeepSeek Harness Web client: photo background with glass panes, blue whale brand mark, rainbow deepseek wordmark, and one solid colour per workspace name",
   "license": "MIT",
   "repository": {

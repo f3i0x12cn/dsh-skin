@@ -140,8 +140,8 @@ curl -fsSL https://raw.githubusercontent.com/f3i0x12cn/dsh-skin/main/install.sh 
 ```
 
 脚本会定位应用自带的 CLI、检查应用确实已退出，然后把本包作为 profile 的一层装进去。
-装完重新打开应用即可。想固定版本：`DSH_SKIN_REF=v1.1.0`（对应本次功能：品牌换色、
-工作区配色、会话标记）。
+装完重新打开应用即可。想固定版本：`DSH_SKIN_REF=v1.1.1`（1.1 的功能：品牌换色、
+工作区配色、会话标记；1.1.1 修掉内置图 404）。
 
 包名和仓库现在都叫 `dsh-skin`。旧地址（`f3i0x12cn/dsh-skin-photo`）GitHub 会自动重定向，
 但建议换成上面的新地址。安装和卸载都以包名为准：`dsh plugin --profile desktop remove dsh-skin`。

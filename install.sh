@@ -9,7 +9,7 @@
 #   bash install.sh
 #
 # 环境变量：DSH_APP（应用路径）、DSH_PROFILE（默认 desktop）、
-# DSH_SKIN_REF（git tag/分支，如 v1.1.0）、DSH_CLI（直接指定 CLI）。
+# DSH_SKIN_REF（git tag/分支，如 v1.1.1）、DSH_CLI（直接指定 CLI）。
 
 set -euo pipefail
 
