@@ -51,6 +51,9 @@ function makeElement(tag) {
     removeAttribute(name) {
       this.attributes.delete(name)
     },
+    getAttribute(name) {
+      return this.attributes.get(name) ?? null
+    },
     hasAttribute(name) {
       return this.attributes.has(name)
     },
@@ -67,6 +70,29 @@ function makeElement(tag) {
   return element
 }
 
+function makeRow(key, title) {
+  const node = makeElement('div')
+  node.setAttribute('data-row-key', key)
+  if (title !== undefined) node.querySelector = (selector) => (selector.includes('_title') ? title : null)
+  return node
+}
+
+// The session tree is not rendered here: these stand in for its rows, in document
+// order, with the first three workspaces carrying three sessions each.
+const workspaceRows = []
+const sessionTitles = []
+const sidebarRows = []
+for (let index = 0; index < 8; index += 1) {
+  const workspace = makeRow('workspace:' + index)
+  workspaceRows.push(workspace)
+  sidebarRows.push(workspace)
+  for (let session = 0; session < (index < 3 ? 3 : 1); session += 1) {
+    const title = makeElement('span')
+    sessionTitles.push(title)
+    sidebarRows.push(makeRow('session:' + index + ':' + session, title))
+  }
+}
+
 const head = makeElement('head')
 const body = makeElement('body')
 const documentElement = makeElement('html')
@@ -76,6 +102,10 @@ globalThis.document = {
   body,
   documentElement,
   createElement: (tag) => makeElement(tag),
+  createElementNS: (_namespace, tag) => makeElement(tag),
+  getElementById: (id) => created.find((element) => element.id === id) ?? null,
+  // The React tree is not rendered here; these stand in for the workspace rows.
+  querySelectorAll: (selector) => (selector.startsWith('[data-row-key^=') ? sidebarRows : []),
   querySelector: (selector) => {
     const match = /data-plugin-css="([^"]+)"/.exec(selector)
     if (match === null) return null
@@ -92,7 +122,15 @@ globalThis.MutationObserver = class {
 
 // The Host half is not running here; answer the one boot request with a
 // tuned config so the adoption path is exercised.
-const persisted = { glass: 80, blur: 12, enabled: true, image: '1700000000000' }
+const persisted = {
+  glass: 80,
+  blur: 12,
+  enabled: true,
+  brand: true,
+  workspaceName: false,
+  markers: 'triangle',
+  image: '1700000000000',
+}
 const calls = []
 globalThis.fetch = async (url, init = {}) => {
   calls.push([String(url), init.method ?? 'GET'])
@@ -129,7 +167,7 @@ new Function('window', 'document', 'MutationObserver', 'fetch', source)(
 )
 
 if (registered === undefined) fail('bundle did not call __ModuleLoader__.load')
-if (registered.id !== 'dsh-skin-photo') fail(`unexpected id ${registered.id}`)
+if (registered.id !== 'dsh-skin') fail(`unexpected id ${registered.id}`)
 
 const exports = registered.factory((id) => {
   if (id === 'react') return react
@@ -138,30 +176,69 @@ const exports = registered.factory((id) => {
 if (typeof exports.apply !== 'function') fail('missing apply export')
 if (!Array.isArray(exports.inject) || !exports.inject.includes('slots')) fail('missing slots injection')
 
+// Workspace names: one solid colour per row, cycling through the spectrum.
+const NAMES = ['#e5484d', '#f76b15', '#a67c00', '#30a46c', '#0d9488', '#3b82f6', '#8b5cf6']
+const painted = workspaceRows.map((row) => row.style.properties.get('--dsh-skin-name-color'))
+if (painted[0] !== NAMES[0]) fail(`first workspace row should be ${NAMES[0]}, got ${painted[0]}`)
+if (painted[6] !== NAMES[6]) fail(`seventh workspace row should be ${NAMES[6]}, got ${painted[6]}`)
+if (painted[7] !== NAMES[0]) fail(`eighth workspace row should cycle back to ${NAMES[0]}, got ${painted[7]}`)
+
+// Sessions are numbered from 1 under each workspace: 1. 2. 3. | 1. 2. 3. | 1. 2. 3. | 1. ...
+const indexes = sessionTitles.map((title) => title.attributes.get('data-dsh-skin-index'))
+const firstNine = indexes.slice(0, 9).join(' ')
+if (firstNine !== '1. 2. 3. 1. 2. 3. 1. 2. 3.') fail(`session numbering wrong: ${firstNine}`)
+if (indexes[9] !== '1.') fail(`numbering should restart under the fourth workspace, got ${indexes[9]}`)
+
 // ------------------------------------------------------------- scene checks
 
 if (styleTags.length !== 1) fail(`expected one style tag, got ${styleTags.length}`)
 const css = styleTags[0].textContent
 for (const needle of [
-  'data-dsh-skin-photo',
-  'calc(14% * var(--dsh-skin-photo-glass, 1))',
-  'blur(var(--dsh-skin-photo-blur)',
-  'var(--dsh-skin-photo-image, url("/dsh-skin-photo/assets/bridge.webp?v=1"))',
+  'data-dsh-skin',
+  'calc(14% * var(--dsh-skin-glass, 1))',
+  'blur(var(--dsh-skin-blur)',
+  'var(--dsh-skin-image, url("/dsh-skin/assets/bridge.webp?v=1"))',
+  // Workspace headings: code face, semibold, and the folder glyph in the same colour.
+  'font-family: var(--ds-font-family-code',
+  '[class*="_projectRow"] [class*="_folder"]',
 ]) {
   if (!css.includes(needle)) fail(`stylesheet missing ${needle}`)
 }
-if (!documentElement.hasAttribute('data-dsh-skin-photo')) fail('root attribute not set by boot')
+if (!documentElement.hasAttribute('data-dsh-skin')) fail('root attribute not set by boot')
+
+// The wordmark rainbow is a document-level paint server, installed next to the
+// stylesheet rather than inside the wordmark it paints.
+const rainbow = created.find((element) => element.id === 'dsh-skin/rainbow')
+if (rainbow === undefined) fail('rainbow paint server not installed')
+const gradient = rainbow.children[0]?.children[0]
+if (gradient === undefined) fail('rainbow paint server has no gradient')
+if (gradient.children.length !== 7) fail(`expected seven spectrum stops, got ${gradient.children.length}`)
 
 // The boot request is async; let it land before asserting adoption.
 await new Promise((resolve) => setTimeout(resolve, 20))
 
-const glassVar = documentElement.style.properties.get('--dsh-skin-photo-glass')
-const blurVar = documentElement.style.properties.get('--dsh-skin-photo-blur')
-const imageVar = documentElement.style.properties.get('--dsh-skin-photo-image')
+const glassVar = documentElement.style.properties.get('--dsh-skin-glass')
+const blurVar = documentElement.style.properties.get('--dsh-skin-blur')
+const imageVar = documentElement.style.properties.get('--dsh-skin-image')
 if (glassVar !== '0.8') fail(`glass not adopted from host: ${glassVar}`)
 if (blurVar !== '12px') fail(`blur not adopted from host: ${blurVar}`)
-if (imageVar !== 'url("/dsh-skin-photo/image?v=1700000000000")') fail(`image not adopted: ${imageVar}`)
-if (!calls.some(([url, method]) => url === '/dsh-skin-photo/config' && method === 'GET')) {
+if (imageVar !== 'url("/dsh-skin/image?v=1700000000000")') fail(`image not adopted: ${imageVar}`)
+
+// The two brand switches follow their own stored flags, not the photo switch:
+// the fake Host answers with brand on and workspace-name off.
+if (!documentElement.hasAttribute('data-dsh-skin-brand')) fail('brand switch attribute not adopted')
+if (documentElement.hasAttribute('data-dsh-skin-workspace')) {
+  fail('workspace switch attribute set although the Host flag is false')
+}
+
+// The adopted marker style is triangles, and the marker wears its workspace colour.
+const markers = sessionTitles.map((title) => title.attributes.get('data-dsh-skin-index'))
+if (!markers.every((glyph) => glyph === '\u25b2')) fail(`adopted marker should be ▲, got ${markers.join(' ')}`)
+if (sidebarRows[1].style.properties.get('--dsh-skin-name-color') !== NAMES[0]) {
+  fail('session marker colour should match its workspace')
+}
+
+if (!calls.some(([url, method]) => url === '/dsh-skin/config' && method === 'GET')) {
   fail('boot did not request /config')
 }
 
@@ -185,6 +262,7 @@ if (registration.options.name !== 'settings.general.item') fail('wrong slot name
 const tree = registration.component()
 const texts = []
 const inputs = []
+const selects = []
 const walk = (node) => {
   if (node === null || node === undefined) return
   if (Array.isArray(node)) return node.forEach(walk)
@@ -195,11 +273,12 @@ const walk = (node) => {
     }
   }
   if (node.type === 'input') inputs.push(node.props)
+  if (node.type === 'select') selects.push(node.props)
   walk(node.children)
 }
 walk(tree)
 
-for (const label of ['背景图皮肤', '不透明度', '模糊', '选择图片…', '恢复默认', '启用', '当前：自定义图片']) {
+for (const label of ['外观皮肤', '不透明度', '模糊', '选择图片…', '恢复默认', '启用', '当前：自定义图片', '品牌换色', '工作区名字']) {
   if (!texts.includes(label)) fail(`row missing label ${label}`)
 }
 
@@ -212,5 +291,14 @@ if (file.accept !== 'image/*') fail('file input needs accept="image/*"')
 // Sliders must render the adopted values, not the defaults.
 if (!ranges.some((range) => range.value === 80 && range.max === 150)) fail('glass slider not reflecting host value')
 if (!ranges.some((range) => range.value === 12 && range.max === 24)) fail('blur slider not reflecting host value')
+
+// The marker picker adopts the Host choice, then repaints when it changes.
+const markerSelect = selects[0]
+if (markerSelect === undefined) fail('settings row has no marker select')
+if (markerSelect.value !== 'triangle') fail(`marker select should show the adopted style, got ${markerSelect.value}`)
+markerSelect.onChange({ target: { value: 'random' } })
+const pool = '\u25b2\u25cf\u25a0\u25c6\u2605\u25cb'
+const picked = sessionTitles.map((title) => title.attributes.get('data-dsh-skin-index'))
+if (!picked.every((glyph) => pool.includes(glyph))) fail(`random markers should come from the pool, got ${picked.join(' ')}`)
 
 console.log('ok  bundle registers, boot adopts host config, row renders', texts.length, 'labels /', inputs.length, 'inputs')

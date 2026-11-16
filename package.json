@@ -1,14 +1,14 @@
 {
-  "name": "dsh-skin-photo",
-  "version": "1.0.0",
-  "description": "Photo-background skin for the DeepSeek Harness Web client: a local image behind glass surfaces, tuned from Settings",
+  "name": "dsh-skin",
+  "version": "1.1.0",
+  "description": "Appearance skin for the DeepSeek Harness Web client: photo background with glass panes, blue whale brand mark, rainbow deepseek wordmark, and one solid colour per workspace name",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/f3i0x12cn/dsh-skin-photo.git"
+    "url": "git+https://github.com/f3i0x12cn/dsh-skin.git"
   },
-  "homepage": "https://github.com/f3i0x12cn/dsh-skin-photo#readme",
-  "bugs": "https://github.com/f3i0x12cn/dsh-skin-photo/issues",
+  "homepage": "https://github.com/f3i0x12cn/dsh-skin#readme",
+  "bugs": "https://github.com/f3i0x12cn/dsh-skin/issues",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -32,7 +32,8 @@
     "dsh",
     "deepseek-harness",
     "skin",
-    "theme"
+    "theme",
+    "brand"
   ],
   "dsh": {
     "bundle": {

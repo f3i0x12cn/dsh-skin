@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 #
-# dsh-skin-photo 一键安装。
+# dsh-skin 一键安装。
 #
-#   curl -fsSL https://raw.githubusercontent.com/f3i0x12cn/dsh-skin-photo/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/f3i0x12cn/dsh-skin/main/install.sh | bash
 #
 # 在仓库目录里直接跑也可以，那样装的是本地这份而不是 GitHub 上的：
 #
 #   bash install.sh
 #
 # 环境变量：DSH_APP（应用路径）、DSH_PROFILE（默认 desktop）、
-# DSH_SKIN_REF（git tag/分支，如 v1.0.0）、DSH_CLI（直接指定 CLI）。
+# DSH_SKIN_REF（git tag/分支，如 v1.1.0）、DSH_CLI（直接指定 CLI）。
 
 set -euo pipefail
 
-REPO="${DSH_SKIN_REPO:-github:f3i0x12cn/dsh-skin-photo}"
+REPO="${DSH_SKIN_REPO:-github:f3i0x12cn/dsh-skin}"
 REF="${DSH_SKIN_REF:-}"
 APP="${DSH_APP:-/Applications/DeepSeek Harness.app}"
 PROFILE="${DSH_PROFILE:-desktop}"
@@ -57,5 +57,5 @@ say ""
 "$CLI" plugin --profile "$PROFILE" add "$SPEC"
 
 say ""
-say "装好了。重新打开 DeepSeek Harness，在 设置 → 通用 → 背景图皮肤 里调整。"
-say "卸载：\"$CLI\" plugin --profile \"$PROFILE\" remove dsh-skin-photo"
+say "装好了。重新打开 DeepSeek Harness，在 设置 → 通用 → 外观皮肤 里调整。"
+say "卸载：\"$CLI\" plugin --profile \"$PROFILE\" remove dsh-skin"
